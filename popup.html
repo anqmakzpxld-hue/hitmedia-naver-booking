@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    overflow: hidden;
+    font-family: "Malgun Gothic", "맑은 고딕", sans-serif;
+  }
+  .card {
+    width: 340px;
+    height: 100px;
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    box-sizing: border-box;
+    cursor: pointer;
+    border-left: 5px solid #FEE500; /* 카카오 옐로우 포인트 */
+    animation: slideIn 0.25s ease-out;
+  }
+  @keyframes slideIn {
+    from { transform: translateX(30px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  .icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #FEE500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+    margin-right: 12px;
+  }
+  .content {
+    flex: 1;
+    min-width: 0;
+  }
+  .title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1C2030;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .status-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 8px;
+    background: #FBE7E4;
+    color: #D6483A;
+  }
+  .body-text {
+    font-size: 13px;
+    color: #444;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .sub-text {
+    font-size: 11px;
+    color: #999;
+    margin-top: 2px;
+  }
+</style>
+</head>
+<body>
+  <div class="card" id="card">
+    <div class="icon">📅</div>
+    <div class="content">
+      <div class="title">
+        새 예약
+        <span class="status-badge" id="status">신청</span>
+      </div>
+      <div class="body-text" id="bodyText">-</div>
+      <div class="sub-text" id="subText">-</div>
+    </div>
+  </div>
+
+  <script>
+    const { ipcRenderer } = require("electron");
+
+    ipcRenderer.on("booking-data", (event, booking) => {
+      document.getElementById("status").innerText = booking.statusLabel || "";
+      document.getElementById("bodyText").innerText = `${booking.name}님 · ${booking.headCount || 1}명`;
+      document.getElementById("subText").innerText = booking.time || "";
+    });
+
+    document.getElementById("card").addEventListener("click", () => {
+      ipcRenderer.send("close-popup");
+    });
+
+    // 몇 초 지나면 자동으로도 닫히게 (클릭 안 해도 화면에 계속 안 남도록)
+    setTimeout(() => {
+      ipcRenderer.send("close-popup");
+    }, 8000);
+  </script>
+</body>
+</html>

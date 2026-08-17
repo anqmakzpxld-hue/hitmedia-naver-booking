@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    font-family: "Malgun Gothic", "맑은 고딕", sans-serif;
+    overflow: hidden;
+  }
+  .app {
+    display: flex;
+    height: 100%;
+  }
+  .sidebar {
+    width: 210px;
+    flex-shrink: 0;
+    background: #1C2030;
+    display: flex;
+    flex-direction: column;
+    padding: 18px 0;
+    overflow-y: auto;
+  }
+  .brand {
+    padding: 0 18px 18px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #2A3145;
+  }
+  .brand-title {
+    color: white;
+    font-weight: 800;
+    font-size: 14px;
+  }
+  .brand-sub {
+    color: #8A8FA3;
+    font-size: 11px;
+    margin-top: 3px;
+  }
+  .menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 18px;
+    margin: 2px 10px;
+    border-radius: 8px;
+    color: #B5B9C7;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+  }
+  .menu-item:hover {
+    background: #262B3D;
+    color: white;
+  }
+  .menu-item.active {
+    background: #FEE500;
+    color: #1C2030;
+  }
+  .menu-icon {
+    font-size: 15px;
+    width: 18px;
+    text-align: center;
+  }
+  .lock-icon-small {
+    margin-left: auto;
+    font-size: 11px;
+    opacity: 0.7;
+  }
+
+  .section-divider {
+    height: 1px;
+    background: #2A3145;
+    margin: 10px 16px;
+  }
+  .section-label {
+    padding: 6px 18px 4px;
+    font-size: 10px;
+    color: #6B7086;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  .content {
+    flex: 1;
+    position: relative;
+    background: #F5F5F3;
+  }
+  .page {
+    display: none;
+    width: 100%;
+    height: 100%;
+  }
+  .page.active {
+    display: block;
+  }
+  webview {
+    width: 100%;
+    height: 100%;
+  }
+  .placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #999;
+    padding: 20px;
+    text-align: center;
+  }
+  .placeholder-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+  }
+  .placeholder-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #555;
+    margin-bottom: 6px;
+  }
+  .placeholder-sub {
+    font-size: 13px;
+    color: #999;
+    max-width: 320px;
+  }
+  .paid-notice {
+    margin-top: 20px;
+    padding: 18px 22px;
+    background: #FFF7DB;
+    border: 1px solid #F3E1A0;
+    border-radius: 12px;
+    max-width: 320px;
+  }
+  .paid-notice-text {
+    font-size: 13px;
+    color: #7A5C10;
+    margin-bottom: 12px;
+    font-weight: 600;
+  }
+  .paid-notice button {
+    width: 100%;
+    padding: 10px;
+    background: #1C2030;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .paid-notice button:hover {
+    background: #2A3145;
+  }
+
+  /* 출퇴근부 */
+  .att-wrap { padding: 24px 28px; height: 100%; overflow-y: auto; }
+  .att-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .att-tabs { display: flex; gap: 6px; }
+  .att-tab { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 700; color: #888; cursor: pointer; }
+  .att-tab.active { background: #1C2030; color: white; }
+  .att-add-btn { padding: 9px 16px; background: #FEE500; color: #1C2030; border: none; border-radius: 8px; font-size: 12px; font-weight: 800; cursor: pointer; }
+  .att-panel { display: none; }
+  .att-panel.active { display: block; }
+
+  .staff-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+  .staff-card { background: white; border-radius: 12px; padding: 16px; border: 1px solid #EAEAE6; }
+  .staff-name { font-size: 14px; font-weight: 800; color: #1C2030; margin-bottom: 4px; }
+  .staff-time { font-size: 11px; color: #999; margin-bottom: 12px; }
+  .staff-btn-row { display: flex; gap: 6px; }
+  .staff-btn { flex: 1; padding: 8px 0; border-radius: 8px; border: none; font-size: 12px; font-weight: 700; cursor: pointer; }
+  .staff-btn.in { background: #E5F1E4; color: #3F9142; }
+  .staff-btn.out { background: #FBE7E4; color: #D6483A; }
+  .staff-btn-edit, .staff-btn-del { flex: 1; padding: 6px 2px; border-radius: 8px; border: none; font-size: 10px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+  .staff-btn-edit { background: #F1F1EF; color: #666; }
+  .staff-btn-del { background: #FBE7E4; color: #D6483A; }
+
+  .cal-controls { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .cal-controls select { padding: 8px 10px; border-radius: 8px; border: 1px solid #DDD; font-size: 13px; }
+  .cal-nav { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 700; }
+  .cal-nav button { border: none; background: white; border-radius: 6px; width: 28px; height: 28px; cursor: pointer; border: 1px solid #DDD; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; background: #EAEAE6; border: 1px solid #EAEAE6; border-radius: 10px; overflow: hidden; }
+  .cal-cell { background: white; min-height: 70px; padding: 6px; font-size: 11px; cursor: pointer; }
+  .cal-cell.readonly { cursor: default; }
+  .cal-cell.empty { background: #FAFAF8; cursor: default; }
+  .cal-date { font-weight: 700; color: #444; margin-bottom: 4px; }
+  .cal-tag { font-size: 9px; padding: 1px 5px; border-radius: 4px; display: inline-block; margin-bottom: 2px; }
+  .late-toggle { cursor: pointer; }
+  .late-toggle:hover { opacity: 0.75; }
+  .cal-tag.ontime { background: #E5F1E4; color: #3F9142; }
+  .cal-tag.late { background: #FBE7E4; color: #D6483A; }
+  .cal-tag.leave { background: #EFE7F7; color: #7A4FB5; }
+  .cal-tag.leave-휴무 { background: #EFE7F7; color: #7A4FB5; }
+  .cal-tag.leave-반차 { background: #E6E9FB; color: #4A4FC4; }
+  .cal-tag.leave-지각 { background: #FBE7E4; color: #D6483A; }
+  .cal-tag.leave-병가 { background: #F7EDDA; color: #C98A1E; }
+  .cal-legend { display: flex; gap: 16px; margin-top: 14px; font-size: 11px; color: #999; }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
+  .dot-ontime { background: #3F9142; }
+  .dot-late { background: #D6483A; }
+  .dot-leave { background: #7A4FB5; }
+
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(28,32,48,0.5);
+    display: none; align-items: center; justify-content: center; z-index: 100;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal-box { width: 300px; background: white; border-radius: 16px; padding: 24px; }
+  .modal-title { font-size: 15px; font-weight: 800; color: #1C2030; margin-bottom: 14px; text-align: center; }
+  .modal-box label { font-size: 12px; font-weight: 700; color: #555; display: block; margin: 10px 0 4px; }
+  .modal-box input { width: 100%; box-sizing: border-box; padding: 9px 10px; border: 1px solid #DDD; border-radius: 8px; font-size: 13px; }
+  .modal-error { color: #D6483A; font-size: 11px; margin-top: 8px; min-height: 14px; }
+  .modal-btn-row { display: flex; gap: 8px; margin-top: 16px; }
+  .modal-btn-cancel, .modal-btn-confirm { flex: 1; padding: 10px; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; }
+  .modal-btn-cancel { background: #F1F1EF; color: #666; }
+  .modal-btn-confirm { background: #1C2030; color: white; }
+
+  .leave-type-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .leave-type-btn { padding: 12px; border-radius: 8px; border: 1px solid #DDD; background: white; font-size: 13px; font-weight: 700; cursor: pointer; }
+  .leave-type-btn:hover { background: #FEE500; border-color: #FEE500; }
+  .leave-type-btn.selected { background: #FEE500; border-color: #FEE500; color: #1C2030; }
+
+  .wizard-steps { display: flex; justify-content: center; gap: 8px; margin-bottom: 18px; }
+  .wizard-step-dot {
+    width: 26px; height: 26px; border-radius: 50%; background: #F1F1EF; color: #999;
+    display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800;
+  }
+  .wizard-step-dot.active { background: #FEE500; color: #1C2030; }
+  .wizard-panel { display: none; }
+  .wizard-panel.active { display: block; }
+
+  .contract-preview {
+    max-height: 320px; overflow-y: auto; background: #FAFAF8; border: 1px solid #EAEAE6;
+    border-radius: 8px; padding: 14px; font-size: 11px; line-height: 1.8; color: #333; white-space: pre-wrap;
+  }
+  .contract-list-item {
+    background: white; border: 1px solid #EAEAE6; border-radius: 12px; padding: 16px; margin-bottom: 10px; cursor: pointer;
+  }
+  .contract-list-item:hover { border-color: #FEE500; }
+  .contract-list-name { font-size: 14px; font-weight: 800; color: #1C2030; }
+  .contract-list-date { font-size: 11px; color: #999; margin-top: 3px; }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: #1C2030; color: white; padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 700;
+    opacity: 0; pointer-events: none; transition: all 0.25s ease; z-index: 200;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .lock-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(28,32,48,0.92);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+  }
+  .lock-overlay.active { display: flex; }
+  .lock-box {
+    width: 300px;
+    background: #262B3D;
+    border-radius: 14px;
+    padding: 28px;
+    text-align: center;
+  }
+  .lock-icon { font-size: 32px; margin-bottom: 10px; }
+  .lock-title { color: white; font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .lock-sub { color: #8A8FA3; font-size: 11px; margin-bottom: 18px; }
+  .lock-box input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: none;
+    font-size: 14px;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  .lock-box button {
+    width: 100%;
+    padding: 10px;
+    background: #FEE500;
+    color: #1C2030;
+    border: none;
+    border-radius: 8px;
+    font-weight: 800;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .lock-error {
+    color: #F2775A;
+    font-size: 11px;
+    margin-top: 8px;
+    min-height: 14px;
+  }
+</style>
+</head>
+<body>
+  <div class="app">
+    <div class="sidebar">
+      <div class="brand">
+        <div class="brand-title">히트미디어</div>
+        <div class="brand-sub" id="storeNameLabel">매장 관리 프로그램</div>
+      </div>
+
+      <div class="menu-item active" data-page="attendance">
+        <span class="menu-icon">🕐</span> 출퇴근부
+      </div>
+
+      <div class="section-divider"></div>
+
+      <div class="menu-item" data-page="naver-booking">
+        <span class="menu-icon">📅</span> 네이버 예약 관리
+      </div>
+      <div class="menu-item" data-page="naver-stats">
+        <span class="menu-icon">📈</span> 플레이스 통계
+      </div>
+      <div class="menu-item" data-page="naver-review">
+        <span class="menu-icon">⭐</span> 네이버 리뷰 보기
+      </div>
+      <div class="menu-item" data-page="visitor-source">
+        <span class="menu-icon">📊</span> 고객 방문 유입 경로
+      </div>
+      <div class="menu-item" data-page="naver-ad">
+        <span class="menu-icon">📢</span> 네이버 광고 통계
+      </div>
+      <div class="menu-item" data-page="insta-ad">
+        <span class="menu-icon">📸</span> 인스타그램 광고 통계
+      </div>
+
+      <div class="section-divider"></div>
+      <div class="section-label">사장님 전용</div>
+
+      <div class="menu-item" data-page="revenue" data-locked="true">
+        <span class="menu-icon">📊</span> 매출 관리
+        <span class="lock-icon-small">🔒</span>
+      </div>
+      <div class="menu-item" data-page="payroll" data-locked="true">
+        <span class="menu-icon">💰</span> 급여 관리
+        <span class="lock-icon-small">🔒</span>
+      </div>
+      <div class="menu-item" data-page="contract" data-locked="true">
+        <span class="menu-icon">📄</span> 전자계약서
+        <span class="lock-icon-small">🔒</span>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="page" id="page-naver-booking">
+        <webview id="naverBookingView" src="https://partner.booking.naver.com/booking-list-view"></webview>
+      </div>
+      <div class="page active" id="page-attendance">
+        <div class="att-wrap">
+          <div class="att-header">
+            <div class="att-tabs">
+              <div class="att-tab active" data-tab="staff">직원 & 출퇴근</div>
+              <div class="att-tab" data-tab="calendar">달력</div>
+            </div>
+            <button class="att-add-btn" id="addEmployeeBtn">+ 직원 추가</button>
+          </div>
+
+          <div class="att-panel active" id="attPanel-staff">
+            <div class="staff-grid" id="staffGrid"></div>
+          </div>
+
+          <div class="att-panel" id="attPanel-calendar">
+            <div class="cal-controls">
+              <select id="calEmployeeSelect"></select>
+              <div class="cal-nav">
+                <button id="calPrevBtn">‹</button>
+                <span id="calMonthLabel"></span>
+                <button id="calNextBtn">›</button>
+              </div>
+            </div>
+            <div class="cal-grid" id="calGrid"></div>
+            <div class="cal-legend">
+              <span><i class="dot dot-ontime"></i>정상출근</span>
+              <span><i class="dot dot-late"></i>지각</span>
+              <span><i class="dot dot-leave"></i>휴무/반차 등</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-overlay" id="addEmployeeModal">
+          <div class="modal-box" style="width:420px;max-height:80vh;overflow-y:auto;">
+            <div class="wizard-steps">
+              <span class="wizard-step-dot active" data-step="1">1</span>
+              <span class="wizard-step-dot" data-step="2">2</span>
+              <span class="wizard-step-dot" data-step="3">3</span>
+              <span class="wizard-step-dot" data-step="4">4</span>
+            </div>
+
+            <div class="wizard-panel active" id="wizardStep1">
+              <div class="modal-title" id="wizardStep1Title">직원 기본 정보</div>
+              <label>이름</label>
+              <input id="newEmpName" type="text" placeholder="예: 김철수" />
+              <label>휴대폰 번호</label>
+              <input id="newEmpPhone" type="text" placeholder="010-0000-0000" />
+              <div class="modal-error" id="wizardStep1Error"></div>
+              <div class="modal-btn-row">
+                <button class="modal-btn-cancel" id="cancelAddEmpBtn">취소</button>
+                <button class="modal-btn-confirm" id="toStep2Btn">다음</button>
+              </div>
+            </div>
+
+            <div class="wizard-panel" id="wizardStep2">
+              <div class="modal-title">근로계약 정보</div>
+              <label>업무 내용</label>
+              <input id="cJobDesc" type="text" placeholder="예: 홀 서빙 및 매장 관리" />
+              <label>시급</label>
+              <input id="cWageAmount" type="number" placeholder="금액(원)" />
+              <label>주 근무시간</label>
+              <input id="cWeeklyHours" type="number" placeholder="예: 15" />
+              <label>상여금 (없으면 비워두세요)</label>
+              <input id="cBonus" type="text" placeholder="예: 명절 상여금 20만원" />
+              <label>그 밖의 수당</label>
+              <input id="cAllowance" type="text" placeholder="예: 식대 10만원" />
+              <label>임금지급일</label>
+              <input id="cPayDay" type="text" placeholder="예: 매월 10일" />
+              <label>지급방법</label>
+              <select id="cPayMethod" style="width:100%;padding:9px;border:1px solid #DDD;border-radius:8px;">
+                <option value="계좌이체">계좌이체</option>
+                <option value="현금">현금</option>
+              </select>
+              <div id="bankFields" style="display:block;">
+                <label>은행명</label>
+                <input id="cBankName" type="text" placeholder="예: 국민은행" />
+                <label>계좌번호</label>
+                <input id="cBankAccount" type="text" placeholder="'-' 없이 숫자만 입력" />
+              </div>
+              <div class="modal-error" id="wizardStep2Error"></div>
+              <div class="modal-btn-row">
+                <button class="modal-btn-cancel" id="toStep1Btn">이전</button>
+                <button class="modal-btn-confirm" id="toStep3Btn">계약서 미리보기</button>
+              </div>
+            </div>
+
+            <div class="wizard-panel" id="wizardStep3">
+              <div class="modal-title">근로계약서 미리보기</div>
+              <div id="contractPreview" class="contract-preview"></div>
+              <div class="modal-btn-row">
+                <button class="modal-btn-cancel" id="toStep2BackBtn">이전</button>
+                <button class="modal-btn-confirm" id="toStep4Btn">서명하기</button>
+              </div>
+            </div>
+
+            <div class="wizard-panel" id="wizardStep4">
+              <div class="modal-title">전자서명</div>
+              <label>사업주 서명 (이름 입력)</label>
+              <input id="cEmployerSign" type="text" placeholder="사업주 성명 입력" />
+              <label>근로자 서명 (이름 입력)</label>
+              <input id="cEmployeeSign" type="text" placeholder="근로자(직원) 성명 입력" />
+              <div style="font-size:11px;color:#999;margin-top:10px;">이름을 입력하는 것으로 전자서명이 완료됩니다.</div>
+              <div class="modal-error" id="wizardStep4Error"></div>
+              <div class="modal-btn-row">
+                <button class="modal-btn-cancel" id="toStep3BackBtn">이전</button>
+                <button class="modal-btn-confirm" id="confirmAddEmpBtn">서명 완료 및 등록</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-overlay" id="qrModal">
+          <div class="modal-box" style="text-align:center;">
+            <div class="modal-title" id="qrModalTitle">출근 QR</div>
+            <div id="qrCanvasWrap" style="display:flex;justify-content:center;margin:16px 0;"></div>
+            <div style="font-size:12px;color:#888;margin-bottom:16px;">직원 휴대폰 카메라로 QR을 스캔해주세요</div>
+            <div id="qrWaiting" style="font-size:12px;color:#C98A1E;">태그를 기다리는 중...</div>
+            <button class="modal-btn-cancel" id="closeQrBtn" style="width:100%;margin-top:14px;">닫기</button>
+          </div>
+        </div>
+
+        <div class="modal-overlay" id="leaveModal">
+          <div class="modal-box">
+            <div class="modal-title" id="leaveModalTitle">휴무 등록</div>
+            <div class="leave-type-row" id="leaveTypeRow">
+              <button class="leave-type-btn" data-type="휴무" data-color="leave-휴무">휴무</button>
+              <button class="leave-type-btn" data-type="반차" data-color="leave-반차">반차</button>
+              <button class="leave-type-btn" data-type="지각" data-color="leave-지각">지각</button>
+              <button class="leave-type-btn" data-type="병가" data-color="leave-병가">병가</button>
+            </div>
+            <label style="margin-top:12px;">메모 (사유)</label>
+            <input id="leaveMemoInput" type="text" placeholder="예: 대중교통 지연, 개인 사정 등" />
+            <button class="modal-btn-confirm" id="saveLeaveBtn" style="width:100%;margin-top:14px;">저장하기</button>
+            <button class="modal-btn-cancel" id="deleteLeaveBtn" style="width:100%;margin-top:8px;display:none;background:#FBE7E4;color:#D6483A;">이 기록 삭제</button>
+            <button class="modal-btn-cancel" id="closeLeaveBtn" style="width:100%;margin-top:8px;">닫기</button>
+          </div>
+        </div>
+
+        <div class="modal-overlay" id="dayDetailModal">
+          <div class="modal-box">
+            <div class="modal-title" id="dayDetailTitle">날짜 상세</div>
+            <div id="dayDetailBody" style="display:flex;flex-direction:column;gap:8px;"></div>
+            <button class="modal-btn-cancel" id="closeDayDetailBtn" style="width:100%;margin-top:14px;">닫기</button>
+          </div>
+        </div>
+
+        <!-- editEmployeeModal 제거됨: 수정은 addEmployeeModal(계약서 작성 마법사)을 재사용함 -->
+
+        <div class="modal-overlay" id="deleteEmployeeModal">
+          <div class="modal-box" style="text-align:center;">
+            <div class="lock-icon" style="margin-bottom:10px;">🔒</div>
+            <div class="modal-title" id="deleteEmpTitle">직원 삭제</div>
+            <div style="font-size:12px;color:#999;margin-bottom:14px;">QR정보를 포함한 모든 기록이 함께 삭제됩니다. 사장님 비밀번호를 입력해주세요.</div>
+            <input id="deleteEmpPassword" type="password" placeholder="비밀번호" style="text-align:center;" />
+            <div class="modal-error" id="deleteEmpError"></div>
+            <div class="modal-btn-row">
+              <button class="modal-btn-cancel" id="cancelDeleteEmpBtn">취소</button>
+              <button class="modal-btn-confirm" id="confirmDeleteEmpBtn" style="background:#D6483A;">삭제</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="toast" id="attToast"></div>
+      </div>
+      <div class="page" id="page-naver-stats">
+        <div class="placeholder">
+          <div class="placeholder-icon">📈</div>
+          <div class="placeholder-title">플레이스 통계</div>
+          <div class="placeholder-sub">네이버 스마트플레이스 통계 화면 연결이 곧 추가됩니다.</div>
+        </div>
+      </div>
+      <div class="page" id="page-naver-review">
+        <div class="placeholder">
+          <div class="placeholder-icon">⭐</div>
+          <div class="placeholder-title">네이버 리뷰 보기</div>
+          <div class="placeholder-sub">네이버 리뷰 관리 화면 연결이 곧 추가됩니다.</div>
+        </div>
+      </div>
+      <div class="page" id="page-visitor-source">
+        <div class="placeholder">
+          <div class="placeholder-icon">📊</div>
+          <div class="placeholder-title">고객 방문 유입 경로</div>
+          <div class="placeholder-sub">고객이 어떤 경로로 매장을 알고 방문했는지 자동으로 분석해드려요.</div>
+          <div class="paid-notice">
+            <div class="paid-notice-text">이 기능은 유상 서비스로 전환됩니다.</div>
+            <button>유상 전환 문의하기</button>
+          </div>
+        </div>
+      </div>
+      <div class="page" id="page-naver-ad">
+        <div class="placeholder">
+          <div class="placeholder-icon">📢</div>
+          <div class="placeholder-title">네이버 광고 통계</div>
+          <div class="placeholder-sub">네이버 광고 효율 데이터를 한눈에 확인할 수 있어요.</div>
+          <div class="paid-notice">
+            <div class="paid-notice-text">이 기능은 유상 서비스로 전환됩니다.</div>
+            <button>유상 전환 문의하기</button>
+          </div>
+        </div>
+      </div>
+      <div class="page" id="page-insta-ad">
+        <div class="placeholder">
+          <div class="placeholder-icon">📸</div>
+          <div class="placeholder-title">인스타그램 광고 통계</div>
+          <div class="placeholder-sub">인스타그램 광고 효율 데이터를 한눈에 확인할 수 있어요.</div>
+          <div class="paid-notice">
+            <div class="paid-notice-text">이 기능은 유상 서비스로 전환됩니다.</div>
+            <button>유상 전환 문의하기</button>
+          </div>
+        </div>
+      </div>
+      <div class="page" id="page-revenue">
+        <div class="placeholder">
+          <div class="placeholder-icon">📊</div>
+          <div class="placeholder-title">매출 관리</div>
+          <div class="placeholder-sub">메이트 포스 매출 데이터 연동 기능이 곧 추가됩니다. (기간/메뉴/채널별 매출 집계)</div>
+        </div>
+      </div>
+      <div class="page" id="page-payroll">
+        <div class="placeholder">
+          <div class="placeholder-icon">💰</div>
+          <div class="placeholder-title">급여 관리</div>
+          <div class="placeholder-sub">출퇴근 기록 기반 자동 급여 계산 기능이 곧 추가됩니다.</div>
+        </div>
+      </div>
+      <div class="page" id="page-contract">
+        <div class="att-wrap">
+          <div class="att-header">
+            <div style="font-size:16px;font-weight:800;color:#1C2030;">전자계약서</div>
+          </div>
+          <div id="contractListWrap"></div>
+        </div>
+        <div class="modal-overlay" id="contractViewModal">
+          <div class="modal-box" style="width:420px;max-height:80vh;overflow-y:auto;">
+            <div class="modal-title" id="contractViewTitle">계약서</div>
+            <div id="contractViewBody" class="contract-preview"></div>
+            <button class="modal-btn-confirm" id="downloadContractPdfBtn" style="width:100%;margin-top:14px;">PDF로 다운로드</button>
+            <button class="modal-btn-cancel" id="closeContractViewBtn" style="width:100%;margin-top:8px;">닫기</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="lock-overlay" id="lockOverlay">
+        <div class="lock-box">
+          <div class="lock-icon">🔒</div>
+          <div class="lock-title" id="lockTitle">사장님 전용 메뉴입니다</div>
+          <div class="lock-sub" id="lockSub">비밀번호를 입력해주세요</div>
+          <input id="lockPasswordInput" type="password" placeholder="비밀번호" />
+          <input id="lockPasswordConfirmInput" type="password" placeholder="비밀번호 확인" style="display:none;" />
+          <button id="lockSubmitBtn">확인</button>
+          <button id="lockCancelBtn" style="width:100%;margin-top:8px;padding:10px;background:transparent;color:#8A8FA3;border:none;font-size:12px;cursor:pointer;">취소</button>
+          <div class="lock-error" id="lockError"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <script>
+    const { ipcRenderer } = require("electron");
+
+    let pendingPage = null;
+    let unlockedThisSession = false;
+    let isSettingUpPassword = false;
+
+    ipcRenderer.on("store-name", (event, storeName) => {
+      document.getElementById("storeNameLabel").innerText = storeName;
+    });
+
+    function activatePage(pageKey) {
+      document.querySelectorAll(".menu-item").forEach((el) => el.classList.remove("active"));
+      document.querySelectorAll(".page").forEach((el) => el.classList.remove("active"));
+      document.querySelector('.menu-item[data-page="' + pageKey + '"]').classList.add("active");
+      document.getElementById("page-" + pageKey).classList.add("active");
+      if (pageKey === "contract") loadContracts();
+    }
+
+    async function openLockOverlay(pageKey) {
+      pendingPage = pageKey;
+      document.getElementById("lockError").innerText = "";
+      document.getElementById("lockPasswordInput").value = "";
+      document.getElementById("lockPasswordConfirmInput").value = "";
+
+      const hasPassword = await ipcRenderer.invoke("owner-check-has-password");
+      isSettingUpPassword = !hasPassword;
+
+      if (isSettingUpPassword) {
+        document.getElementById("lockTitle").innerText = "사장님 비밀번호 설정";
+        document.getElementById("lockSub").innerText = "처음 접속하는 메뉴입니다. 사용할 비밀번호를 정해주세요.";
+        document.getElementById("lockPasswordInput").placeholder = "새 비밀번호 (4자리 이상)";
+        document.getElementById("lockPasswordConfirmInput").style.display = "block";
+      } else {
+        document.getElementById("lockTitle").innerText = "사장님 전용 메뉴입니다";
+        document.getElementById("lockSub").innerText = "비밀번호를 입력해주세요";
+        document.getElementById("lockPasswordInput").placeholder = "비밀번호";
+        document.getElementById("lockPasswordConfirmInput").style.display = "none";
+      }
+
+      document.getElementById("lockOverlay").classList.add("active");
+      document.getElementById("lockPasswordInput").focus();
+    }
+
+    document.querySelectorAll(".menu-item").forEach((item) => {
+      item.addEventListener("click", () => {
+        const pageKey = item.dataset.page;
+        const locked = item.dataset.locked === "true";
+
+        if (locked && !unlockedThisSession) {
+          openLockOverlay(pageKey);
+          return;
+        }
+        activatePage(pageKey);
+      });
+    });
+
+    document.getElementById("lockSubmitBtn").addEventListener("click", async () => {
+      const input = document.getElementById("lockPasswordInput").value;
+      const errorEl = document.getElementById("lockError");
+
+      if (isSettingUpPassword) {
+        const confirmInput = document.getElementById("lockPasswordConfirmInput").value;
+        if (!input || input.length < 4) {
+          errorEl.innerText = "비밀번호를 4자리 이상 입력해주세요.";
+          return;
+        }
+        if (input !== confirmInput) {
+          errorEl.innerText = "비밀번호가 서로 다릅니다. 다시 확인해주세요.";
+          return;
+        }
+        await ipcRenderer.invoke("owner-set-password", input);
+        unlockedThisSession = true;
+        document.getElementById("lockOverlay").classList.remove("active");
+        if (pendingPage) activatePage(pendingPage);
+        return;
+      }
+
+      const ok = await ipcRenderer.invoke("owner-verify-password", input);
+      if (ok) {
+        unlockedThisSession = true;
+        document.getElementById("lockOverlay").classList.remove("active");
+        if (pendingPage) activatePage(pendingPage);
+      } else {
+        errorEl.innerText = "비밀번호가 올바르지 않습니다.";
+      }
+    });
+
+    document.getElementById("lockCancelBtn").addEventListener("click", () => {
+      document.getElementById("lockOverlay").classList.remove("active");
+      pendingPage = null;
+      // 잠금 화면을 취소하면 아무 것도 열려있지 않은 상태가 되므로, 안전한 기본 화면(출퇴근부)으로 되돌린다.
+      activatePage("attendance");
+    });
+
+    document.getElementById("lockPasswordConfirmInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") document.getElementById("lockSubmitBtn").click();
+    });
+    document.getElementById("lockPasswordInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !isSettingUpPassword) document.getElementById("lockSubmitBtn").click();
+    });
+
+    // ---------------------------------------------------------------------
+    // 출퇴근부
+    // ---------------------------------------------------------------------
+    const ATTEND_BASE_URL = "https://jbnyeon-erp-six.vercel.app/attend";
+    let currentStoreName = "";
+    let employees = [];
+    let attendanceData = { logs: [], leaves: [] };
+    let calMonthDate = new Date();
+    let calSelectedEmployeeId = null;
+    let dayDetailCache = {};
+    let qrPollTimer = null;
+    let qrPollEmployeeId = null;
+    let qrPollLogType = null;
+    let leaveModalTarget = null; // { employeeId, dateStr }
+    let currentViewingContract = null;
+    let wizardMode = "add"; // "add" | "edit"
+    let editingEmployeeId = null;
+
+    ipcRenderer.on("store-name", (event, storeName) => {
+      currentStoreName = storeName;
+      loadEmployees();
+    });
+
+    function showToast(msg) {
+      const el = document.getElementById("attToast");
+      el.innerText = msg;
+      el.classList.add("show");
+      setTimeout(() => el.classList.remove("show"), 3000);
+    }
+
+    async function loadEmployees() {
+      const res = await ipcRenderer.invoke("erp-get-employees", currentStoreName);
+      if (!res.ok) { showToast("직원 목록 불러오기 실패"); return; }
+      employees = res.data.employees || [];
+      renderStaffGrid();
+      renderCalEmployeeSelect();
+      await loadAttendanceData();
+    }
+
+    async function loadAttendanceData() {
+      const res = await ipcRenderer.invoke("erp-get-attendance", currentStoreName);
+      if (!res.ok) return;
+      attendanceData = res.data;
+      renderCalendar();
+    }
+
+    function renderStaffGrid() {
+      const grid = document.getElementById("staffGrid");
+      if (employees.length === 0) {
+        grid.innerHTML = '<div style="color:#999;font-size:13px;">등록된 직원이 없습니다. "+ 직원 추가"를 눌러주세요.</div>';
+        return;
+      }
+      grid.innerHTML = employees.map((e) => (
+        '<div class="staff-card">' +
+          '<div class="staff-name">' + e.name + '</div>' +
+          '<div class="staff-time">' + (e.wage_amount ? '시급 ' + Number(e.wage_amount).toLocaleString() + '원' : '') + (e.work_days_per_week ? ' · 주 ' + e.work_days_per_week + '시간' : '') + '</div>' +
+          '<div class="staff-btn-row">' +
+            '<button class="staff-btn in" data-emp="' + e.id + '" data-type="check_in">출근</button>' +
+            '<button class="staff-btn out" data-emp="' + e.id + '" data-type="check_out">퇴근</button>' +
+          '</div>' +
+          '<div class="staff-btn-row" style="margin-top:6px;">' +
+            '<button class="staff-btn-edit" data-emp="' + e.id + '">수정계약서 작성하기</button>' +
+            '<button class="staff-btn-del" data-emp="' + e.id + '">삭제</button>' +
+          '</div>' +
+        '</div>'
+      )).join("");
+
+      grid.querySelectorAll(".staff-btn-edit").forEach((btn) => {
+        btn.addEventListener("click", () => openEditEmployeeModal(parseInt(btn.dataset.emp, 10)));
+      });
+      grid.querySelectorAll(".staff-btn-del").forEach((btn) => {
+        btn.addEventListener("click", () => openDeleteEmployeeModal(parseInt(btn.dataset.emp, 10)));
+      });
+
+      grid.querySelectorAll(".staff-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          openQrModal(parseInt(btn.dataset.emp, 10), btn.dataset.type);
+        });
+      });
+    }
+
+    function renderCalEmployeeSelect() {
+      const sel = document.getElementById("calEmployeeSelect");
+      sel.innerHTML = '<option value="all">전체</option>' +
+        employees.map((e) => '<option value="' + e.id + '">' + e.name + '</option>').join("");
+      if (calSelectedEmployeeId === null) {
+        calSelectedEmployeeId = "all";
+      }
+      sel.value = calSelectedEmployeeId;
+      sel.onchange = () => {
+        calSelectedEmployeeId = sel.value === "all" ? "all" : parseInt(sel.value, 10);
+        renderCalendar();
+      };
+    }
+
+    // 직원 추가 마법사
+    let wizardStep = 1;
+    function goToWizardStep(n) {
+      wizardStep = n;
+      document.querySelectorAll(".wizard-panel").forEach((p) => p.classList.remove("active"));
+      document.getElementById("wizardStep" + n).classList.add("active");
+      document.querySelectorAll(".wizard-step-dot").forEach((d) => {
+        d.classList.toggle("active", parseInt(d.dataset.step, 10) <= n);
+      });
+    }
+
+    document.getElementById("addEmployeeBtn").addEventListener("click", () => {
+      wizardMode = "add";
+      editingEmployeeId = null;
+      document.getElementById("wizardStep1Title").innerText = "직원 기본 정보";
+      document.getElementById("confirmAddEmpBtn").innerText = "서명 완료 및 등록";
+      document.getElementById("newEmpName").value = "";
+      document.getElementById("newEmpPhone").value = "";
+      document.getElementById("wizardStep1Error").innerText = "";
+      document.getElementById("cJobDesc").value = "";
+      document.getElementById("cWageAmount").value = "";
+      document.getElementById("cWeeklyHours").value = "";
+      document.getElementById("cBonus").value = "";
+      document.getElementById("cAllowance").value = "";
+      document.getElementById("cPayDay").value = "";
+      document.getElementById("cPayMethod").value = "계좌이체";
+      document.getElementById("cBankName").value = "";
+      document.getElementById("cBankAccount").value = "";
+      document.getElementById("bankFields").style.display = "block";
+      document.getElementById("cEmployerSign").value = "";
+      document.getElementById("cEmployeeSign").value = "";
+      goToWizardStep(1);
+      document.getElementById("addEmployeeModal").classList.add("active");
+    });
+
+    document.getElementById("cPayMethod").addEventListener("change", (e) => {
+      document.getElementById("bankFields").style.display = e.target.value === "계좌이체" ? "block" : "none";
+    });
+    document.getElementById("cancelAddEmpBtn").addEventListener("click", () => {
+      document.getElementById("addEmployeeModal").classList.remove("active");
+    });
+
+    document.getElementById("toStep2Btn").addEventListener("click", () => {
+      const name = document.getElementById("newEmpName").value.trim();
+      if (!name) {
+        document.getElementById("wizardStep1Error").innerText = "이름을 입력해주세요.";
+        return;
+      }
+      document.getElementById("wizardStep1Error").innerText = "";
+      goToWizardStep(2);
+    });
+    document.getElementById("toStep1Btn").addEventListener("click", () => goToWizardStep(1));
+    document.getElementById("toStep2BackBtn").addEventListener("click", () => goToWizardStep(2));
+    document.getElementById("toStep3BackBtn").addEventListener("click", () => goToWizardStep(3));
+
+    function buildContractText() {
+      const name = document.getElementById("newEmpName").value.trim();
+      const job = document.getElementById("cJobDesc").value.trim();
+      const wageAmount = document.getElementById("cWageAmount").value;
+      const weeklyHours = document.getElementById("cWeeklyHours").value;
+      const bonus = document.getElementById("cBonus").value.trim();
+      const allowance = document.getElementById("cAllowance").value.trim();
+      const payDay = document.getElementById("cPayDay").value.trim();
+      const payMethod = document.getElementById("cPayMethod").value;
+      const bankName = document.getElementById("cBankName").value.trim();
+      const bankAccount = document.getElementById("cBankAccount").value.trim();
+      const today = new Date();
+      const todayStr = today.getFullYear() + "년 " + (today.getMonth() + 1) + "월 " + today.getDate() + "일";
+
+      let payMethodLine = "   - 지급방법 : " + payMethod;
+      if (payMethod === "계좌이체" && (bankName || bankAccount)) {
+        payMethodLine += " (" + (bankName || "-") + " " + (bankAccount || "-") + ")";
+      }
+
+      return (
+        currentStoreName + "(이하 「사업주」라 함)과(와) " + name + "(이하 「근로자」라 함)은 다음과 같이 근로계약을 체결한다.\n\n" +
+        "1. 근로개시일 : " + todayStr + "부터\n" +
+        "2. 업무의 내용 : " + (job || "-") + "\n" +
+        "3. 소정근로시간 : 주 " + (weeklyHours || "-") + "시간 (근무일 및 근무시간은 매장 스케줄에 따라 별도 협의)\n" +
+        "4. 임금\n" +
+        "   - 시급 : " + (wageAmount ? Number(wageAmount).toLocaleString() + "원" : "-") + "\n" +
+        "   - 상여금 : " + (bonus || "없음") + "\n" +
+        "   - 그 밖의 수당 : " + (allowance || "없음") + "\n" +
+        "   - 임금지급일 : " + (payDay || "-") + " (휴일의 경우는 전날 지급)\n" +
+        payMethodLine + "\n" +
+        "5. 연차유급휴가 : 근로기준법에서 정하는 바에 따라 부여함\n" +
+        "6. 사회보험 적용여부 : 4대 사회보험(고용보험, 산재보험, 국민연금, 건강보험) 적용을 원칙으로 함\n" +
+        "7. 근로계약서 교부 : 사업주는 본 계약서를 사본하여 근로자에게 교부함 (근로기준법 제17조 이행)\n" +
+        "8. 근로계약, 취업규칙 등의 성실한 이행의무 : 사업주와 근로자는 각자 근로계약, 취업규칙을 지키고 성실히 이행하여야 함\n" +
+        "9. 그 밖의 사항 : 이 계약에 정함이 없는 사항은 근로관계법령에 따름\n\n" +
+        todayStr + "\n\n" +
+        "(사업주) 사업체명 : " + currentStoreName + "\n" +
+        "(근로자) 성명 : " + name
+      );
+    }
+
+    document.getElementById("toStep3Btn").addEventListener("click", () => {
+      document.getElementById("contractPreview").innerText = buildContractText();
+      goToWizardStep(3);
+    });
+
+    document.getElementById("toStep4Btn").addEventListener("click", () => goToWizardStep(4));
+
+    document.getElementById("confirmAddEmpBtn").addEventListener("click", async () => {
+      const employerSign = document.getElementById("cEmployerSign").value.trim();
+      const employeeSign = document.getElementById("cEmployeeSign").value.trim();
+      if (!employerSign || !employeeSign) {
+        document.getElementById("wizardStep4Error").innerText = "사업주와 근로자 서명을 모두 입력해주세요.";
+        return;
+      }
+      document.getElementById("wizardStep4Error").innerText = "";
+
+      const payload = {
+        store_name: currentStoreName,
+        name: document.getElementById("newEmpName").value.trim(),
+        phone: document.getElementById("newEmpPhone").value.trim(),
+        regular_check_in: "00:00",
+        regular_check_out: "00:00",
+        job_description: document.getElementById("cJobDesc").value.trim(),
+        wage_type: "시급",
+        wage_amount: document.getElementById("cWageAmount").value ? Number(document.getElementById("cWageAmount").value) : null,
+        bonus_text: document.getElementById("cBonus").value.trim(),
+        allowance_text: document.getElementById("cAllowance").value.trim(),
+        pay_day: document.getElementById("cPayDay").value.trim(),
+        pay_method: document.getElementById("cPayMethod").value,
+        bank_account: document.getElementById("cPayMethod").value === "계좌이체"
+          ? (document.getElementById("cBankName").value.trim() + " " + document.getElementById("cBankAccount").value.trim()).trim()
+          : null,
+        work_days_per_week: document.getElementById("cWeeklyHours").value ? Number(document.getElementById("cWeeklyHours").value) : null,
+        weekly_holiday: null,
+      };
+
+      let targetEmployeeId;
+
+      if (wizardMode === "edit") {
+        // 기존 직원 정보를 최신값으로 갱신 (새 직원 생성 아님)
+        const updateRes = await ipcRenderer.invoke("erp-update-employee", { id: editingEmployeeId, ...payload });
+        if (!updateRes.ok) {
+          document.getElementById("wizardStep4Error").innerText = "정보 변경 실패: " + updateRes.error;
+          return;
+        }
+        targetEmployeeId = editingEmployeeId;
+      } else {
+        const empRes = await ipcRenderer.invoke("erp-add-employee", payload);
+        if (!empRes.ok) {
+          document.getElementById("wizardStep4Error").innerText = "직원 등록 실패: " + empRes.error;
+          return;
+        }
+        targetEmployeeId = empRes.data.employee.id;
+      }
+
+      // 두 모드 공통: 서명된 새 계약서를 계약 이력에 추가 (기존 계약서는 그대로 보존됨)
+      const contractRes = await ipcRenderer.invoke("erp-add-contract", {
+        employee_id: targetEmployeeId,
+        store_name: currentStoreName,
+        contract_json: payload,
+        employer_signature: employerSign,
+        employee_signature: employeeSign,
+      });
+
+      const empName = payload.name;
+      if (!contractRes.ok) {
+        showToast((wizardMode === "edit" ? "정보는 변경됐지만" : "직원은 등록됐지만") + " 계약서 저장에 실패했습니다: " + contractRes.error);
+      } else if (wizardMode === "edit") {
+        showToast(empName + "님 정보 변경 및 새 계약서 서명이 완료되었습니다.");
+      } else {
+        showToast(empName + "님 등록 및 계약서 서명이 완료되었습니다.");
+      }
+
+      wizardMode = "add";
+      editingEmployeeId = null;
+      document.getElementById("addEmployeeModal").classList.remove("active");
+      await loadEmployees();
+      if (document.getElementById("page-contract").classList.contains("active")) loadContracts();
+    });
+
+    // 직원 수정 = 기존 직원추가 마법사를 재사용해서, 정보 변경 + 새 계약서 서명까지 이어지게 함
+    function openEditEmployeeModal(employeeId) {
+      const emp = employees.find((e) => e.id === employeeId);
+      if (!emp) return;
+
+      wizardMode = "edit";
+      editingEmployeeId = employeeId;
+
+      document.getElementById("wizardStep1Title").innerText = emp.name + "님 정보 변경 (새 계약서 작성)";
+      document.getElementById("newEmpName").value = emp.name || "";
+      document.getElementById("newEmpPhone").value = emp.phone || "";
+      document.getElementById("wizardStep1Error").innerText = "";
+
+      document.getElementById("cJobDesc").value = emp.job_description || "";
+      document.getElementById("cWageAmount").value = emp.wage_amount || "";
+      document.getElementById("cWeeklyHours").value = emp.work_days_per_week || "";
+      document.getElementById("cBonus").value = emp.bonus_text || "";
+      document.getElementById("cAllowance").value = emp.allowance_text || "";
+      document.getElementById("cPayDay").value = emp.pay_day || "";
+      document.getElementById("cPayMethod").value = emp.pay_method || "계좌이체";
+      if (emp.bank_account) {
+        const parts = emp.bank_account.split(" ");
+        document.getElementById("cBankName").value = parts[0] || "";
+        document.getElementById("cBankAccount").value = parts.slice(1).join(" ") || "";
+      } else {
+        document.getElementById("cBankName").value = "";
+        document.getElementById("cBankAccount").value = "";
+      }
+      document.getElementById("bankFields").style.display = document.getElementById("cPayMethod").value === "계좌이체" ? "block" : "none";
+      document.getElementById("cEmployerSign").value = "";
+      document.getElementById("cEmployeeSign").value = "";
+
+      document.getElementById("confirmAddEmpBtn").innerText = "서명 완료 및 정보 변경";
+
+      goToWizardStep(1);
+      document.getElementById("addEmployeeModal").classList.add("active");
+    }
+
+    // 직원 삭제 (사장님 비밀번호 필요)
+    function openDeleteEmployeeModal(employeeId) {
+      const emp = employees.find((e) => e.id === employeeId);
+      if (!emp) return;
+      document.getElementById("deleteEmployeeModal").dataset.empId = employeeId;
+      document.getElementById("deleteEmpTitle").innerText = emp.name + "님을 삭제할까요?";
+      document.getElementById("deleteEmpPassword").value = "";
+      document.getElementById("deleteEmpError").innerText = "";
+      document.getElementById("deleteEmployeeModal").classList.add("active");
+    }
+    document.getElementById("cancelDeleteEmpBtn").addEventListener("click", () => {
+      document.getElementById("deleteEmployeeModal").classList.remove("active");
+    });
+    document.getElementById("confirmDeleteEmpBtn").addEventListener("click", async () => {
+      const id = parseInt(document.getElementById("deleteEmployeeModal").dataset.empId, 10);
+      const password = document.getElementById("deleteEmpPassword").value;
+      const hasPassword = await ipcRenderer.invoke("owner-check-has-password");
+      if (!hasPassword) {
+        document.getElementById("deleteEmpError").innerText = "먼저 사장님 전용 메뉴에서 비밀번호를 설정해주세요.";
+        return;
+      }
+      const ok = await ipcRenderer.invoke("owner-verify-password", password);
+      if (!ok) {
+        document.getElementById("deleteEmpError").innerText = "비밀번호가 올바르지 않습니다.";
+        return;
+      }
+      const res = await ipcRenderer.invoke("erp-delete-employee", id);
+      if (!res.ok) {
+        document.getElementById("deleteEmpError").innerText = "삭제 실패: " + res.error;
+        return;
+      }
+      document.getElementById("deleteEmployeeModal").classList.remove("active");
+      showToast("직원이 삭제되었습니다.");
+      await loadEmployees();
+    });
+
+    // 전자계약서 목록
+    async function loadContracts() {
+      const res = await ipcRenderer.invoke("erp-get-contracts", currentStoreName);
+      const wrap = document.getElementById("contractListWrap");
+      if (!res.ok) {
+        wrap.innerHTML = '<div style="color:#999;font-size:13px;">불러오기 실패</div>';
+        return;
+      }
+      const contracts = res.data.contracts || [];
+      if (contracts.length === 0) {
+        wrap.innerHTML = '<div style="color:#999;font-size:13px;">등록된 계약서가 없습니다. 직원을 추가하면 자동으로 계약서가 저장돼요.</div>';
+        return;
+      }
+      wrap.innerHTML = contracts.map((c) => {
+        const d = new Date(c.signed_at);
+        const dateStr = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+        return (
+          '<div class="contract-list-item" data-id="' + c.id + '">' +
+            '<div class="contract-list-name">' + c.contract_json.name + '</div>' +
+            '<div class="contract-list-date">서명일: ' + dateStr + '</div>' +
+          '</div>'
+        );
+      }).join("");
+
+      wrap.querySelectorAll(".contract-list-item").forEach((item) => {
+        item.addEventListener("click", () => {
+          const contract = contracts.find((c) => String(c.id) === item.dataset.id);
+          openContractView(contract);
+        });
+      });
+    }
+
+    function openContractView(contract) {
+      const cj = contract.contract_json;
+      document.getElementById("contractViewTitle").innerText = cj.name + "님 근로계약서";
+
+      let payMethodLine = "   - 지급방법 : " + cj.pay_method;
+      if (cj.pay_method === "계좌이체" && cj.bank_account) {
+        payMethodLine += " (" + cj.bank_account + ")";
+      }
+      const d = new Date(contract.signed_at);
+      const signedDateStr = d.getFullYear() + "년 " + (d.getMonth() + 1) + "월 " + d.getDate() + "일";
+
+      const text = (
+        currentStoreName + "(이하 「사업주」라 함)과(와) " + cj.name + "(이하 「근로자」라 함)은 다음과 같이 근로계약을 체결한다.\n\n" +
+        "1. 근로개시일 : " + signedDateStr + "부터\n" +
+        "2. 업무의 내용 : " + (cj.job_description || "-") + "\n" +
+        "3. 소정근로시간 : 주 " + (cj.work_days_per_week || "-") + "시간 (근무일 및 근무시간은 매장 스케줄에 따라 별도 협의)\n" +
+        "4. 임금\n" +
+        "   - 시급 : " + (cj.wage_amount ? Number(cj.wage_amount).toLocaleString() + "원" : "-") + "\n" +
+        "   - 상여금 : " + (cj.bonus_text || "없음") + "\n" +
+        "   - 그 밖의 수당 : " + (cj.allowance_text || "없음") + "\n" +
+        "   - 임금지급일 : " + (cj.pay_day || "-") + " (휴일의 경우는 전날 지급)\n" +
+        payMethodLine + "\n" +
+        "5. 연차유급휴가 : 근로기준법에서 정하는 바에 따라 부여함\n" +
+        "6. 사회보험 적용여부 : 4대 사회보험(고용보험, 산재보험, 국민연금, 건강보험) 적용을 원칙으로 함\n" +
+        "7. 근로계약서 교부 : 사업주는 본 계약서를 사본하여 근로자에게 교부함 (근로기준법 제17조 이행)\n" +
+        "8. 근로계약, 취업규칙 등의 성실한 이행의무 : 사업주와 근로자는 각자 근로계약, 취업규칙을 지키고 성실히 이행하여야 함\n" +
+        "9. 그 밖의 사항 : 이 계약에 정함이 없는 사항은 근로관계법령에 따름\n\n" +
+        signedDateStr + "\n\n" +
+        "(사업주) 사업체명 : " + currentStoreName + " (서명 : " + contract.employer_signature + ")\n" +
+        "(근로자) 성명 : " + cj.name + " (서명 : " + contract.employee_signature + ")"
+      );
+
+      document.getElementById("contractViewBody").innerText = text;
+      currentViewingContract = { title: cj.name + "님 근로계약서", text: text, employeeName: cj.name };
+      document.getElementById("contractViewModal").classList.add("active");
+    }
+
+    document.getElementById("downloadContractPdfBtn").addEventListener("click", async () => {
+      if (!currentViewingContract) return;
+      const btn = document.getElementById("downloadContractPdfBtn");
+      const originalText = btn.innerText;
+      btn.innerText = "저장 중...";
+      btn.disabled = true;
+
+      const res = await ipcRenderer.invoke("save-contract-pdf", {
+        fileName: currentViewingContract.employeeName + "_근로계약서.pdf",
+        title: currentViewingContract.title,
+        bodyText: currentViewingContract.text,
+      });
+
+      btn.innerText = originalText;
+      btn.disabled = false;
+
+      if (res.canceled) return;
+      if (!res.ok) {
+        showToast("PDF 저장 실패: " + res.error);
+        return;
+      }
+      showToast("PDF가 저장되었습니다.");
+    });
+    document.getElementById("closeContractViewBtn").addEventListener("click", () => {
+      document.getElementById("contractViewModal").classList.remove("active");
+    });
+
+    // QR 모달
+    function openQrModal(employeeId, logType) {
+      const emp = employees.find((e) => e.id === employeeId);
+      if (!emp) return;
+
+      document.getElementById("qrModalTitle").innerText = emp.name + "님 " + (logType === "check_in" ? "출근" : "퇴근") + " QR";
+      document.getElementById("qrWaiting").innerText = "태그를 기다리는 중...";
+
+      const url = ATTEND_BASE_URL + "?token=" + encodeURIComponent(emp.qr_token) + "&type=" + logType;
+      const wrap = document.getElementById("qrCanvasWrap");
+      wrap.innerHTML = "";
+      const canvas = document.createElement("canvas");
+      wrap.appendChild(canvas);
+      QRCode.toCanvas(canvas, url, { width: 200 });
+
+      document.getElementById("qrModal").classList.add("active");
+
+      qrPollEmployeeId = employeeId;
+      qrPollLogType = logType;
+      const knownLogIds = new Set(attendanceData.logs.map((l) => l.id));
+
+      if (qrPollTimer) clearInterval(qrPollTimer);
+      qrPollTimer = setInterval(async () => {
+        const res = await ipcRenderer.invoke("erp-get-attendance", currentStoreName);
+        if (!res.ok) return;
+        const newLog = (res.data.logs || []).find(
+          (l) => l.employee_id === qrPollEmployeeId && l.log_type === qrPollLogType && !knownLogIds.has(l.id)
+        );
+        if (newLog) {
+          clearInterval(qrPollTimer);
+          qrPollTimer = null;
+          attendanceData = res.data;
+          document.getElementById("qrModal").classList.remove("active");
+          const label = qrPollLogType === "check_in" ? "출근" : "퇴근";
+          const lateText = newLog.is_late ? " (지각)" : "";
+          showToast(emp.name + "님 " + label + "하셨습니다" + lateText);
+          renderCalendar();
+        }
+      }, 3000);
+    }
+    document.getElementById("closeQrBtn").addEventListener("click", () => {
+      document.getElementById("qrModal").classList.remove("active");
+      if (qrPollTimer) { clearInterval(qrPollTimer); qrPollTimer = null; }
+    });
+
+    // 달력
+    function renderCalendar() {
+      const year = calMonthDate.getFullYear();
+      const month = calMonthDate.getMonth();
+      document.getElementById("calMonthLabel").innerText = year + "년 " + (month + 1) + "월";
+
+      const isAllMode = calSelectedEmployeeId === "all";
+
+      const firstDay = new Date(year, month, 1);
+      const startWeekday = firstDay.getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      const empLogs = isAllMode ? attendanceData.logs : attendanceData.logs.filter((l) => l.employee_id === calSelectedEmployeeId);
+      const empLeaves = isAllMode ? attendanceData.leaves : attendanceData.leaves.filter((l) => l.employee_id === calSelectedEmployeeId);
+      const employeeNameById = {};
+      employees.forEach((e) => { employeeNameById[e.id] = e.name; });
+
+      let html = "";
+      for (let i = 0; i < startWeekday; i++) html += '<div class="cal-cell empty"></div>';
+
+      dayDetailCache = {}; // 전체 모드에서 클릭 시 보여줄 상세 데이터 캐시
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = year + "-" + String(month + 1).padStart(2, "0") + "-" + String(d).padStart(2, "0");
+        const dayLogs = empLogs.filter((l) => l.log_date === dateStr);
+
+        let tags = "";
+
+        if (isAllMode) {
+          // 전체 모드: 칸이 커지지 않도록 요약 숫자만 표시하고, 상세 목록은 클릭 시 팝업으로 보여준다.
+          const inCount = new Set(dayLogs.filter((l) => l.log_type === "check_in").map((l) => l.employee_id)).size;
+          const dayLeaves = empLeaves.filter((l) => l.leave_date === dateStr);
+
+          if (inCount > 0) {
+            tags += '<div class="cal-tag ontime">출근 ' + inCount + '명</div>';
+          }
+          if (dayLeaves.length > 0) {
+            const byType = {};
+            dayLeaves.forEach((l) => { byType[l.leave_type] = (byType[l.leave_type] || 0) + 1; });
+            Object.keys(byType).forEach((type) => {
+              tags += '<div class="cal-tag leave-' + type + '">' + type + ' ' + byType[type] + '명</div>';
+            });
+          }
+
+          if (inCount > 0 || dayLeaves.length > 0) {
+            dayDetailCache[dateStr] = { dayLogs: dayLogs, dayLeaves: dayLeaves };
+          }
+        } else {
+          const leave = empLeaves.find((l) => l.leave_date === dateStr);
+          const checkIn = dayLogs.find((l) => l.log_type === "check_in");
+          const checkOut = dayLogs.find((l) => l.log_type === "check_out");
+          if (checkIn) {
+            const inTime = new Date(checkIn.logged_at);
+            const inTimeStr = String(inTime.getHours()).padStart(2, "0") + ":" + String(inTime.getMinutes()).padStart(2, "0");
+            tags += '<div class="cal-tag ontime">출근 ' + inTimeStr + '</div>';
+          }
+          if (checkOut) {
+            const outTime = new Date(checkOut.logged_at);
+            const outTimeStr = String(outTime.getHours()).padStart(2, "0") + ":" + String(outTime.getMinutes()).padStart(2, "0");
+            tags += '<div class="cal-tag" style="background:#E3EFF1;color:#2F7A8C;">퇴근 ' + outTimeStr + '</div>';
+          }
+          if (leave) {
+            tags += '<div class="cal-tag leave-' + leave.leave_type + '">' + leave.leave_type + (leave.memo ? ' · ' + leave.memo : '') + '</div>';
+          }
+        }
+
+        html += '<div class="cal-cell' + (isAllMode ? ' readonly' : '') + '" data-date="' + dateStr + '"><div class="cal-date">' + d + '</div>' + tags + '</div>';
+      }
+
+      document.getElementById("calGrid").innerHTML = html;
+      if (isAllMode) {
+        document.querySelectorAll(".cal-cell[data-date]").forEach((cell) => {
+          const dateStr = cell.dataset.date;
+          if (dayDetailCache[dateStr]) {
+            cell.addEventListener("click", () => openDayDetailModal(dateStr, employeeNameById));
+          }
+        });
+      } else {
+        document.querySelectorAll(".cal-cell[data-date]").forEach((cell) => {
+          cell.addEventListener("click", () => openLeaveModal(cell.dataset.date));
+        });
+      }
+    }
+
+    function openDayDetailModal(dateStr, employeeNameById) {
+      const detail = dayDetailCache[dateStr];
+      if (!detail) return;
+
+      document.getElementById("dayDetailTitle").innerText = dateStr + " 전체 현황";
+
+      let bodyHtml = "";
+      const inLogsByEmp = {};
+      detail.dayLogs.forEach((l) => {
+        if (l.log_type !== "check_in") return;
+        const name = employeeNameById[l.employee_id] || "?";
+        const t = new Date(l.logged_at);
+        const timeStr = String(t.getHours()).padStart(2, "0") + ":" + String(t.getMinutes()).padStart(2, "0");
+        inLogsByEmp[l.employee_id] = name + " · 출근 " + timeStr;
+      });
+      Object.values(inLogsByEmp).forEach((line) => {
+        bodyHtml += '<div style="padding:8px 10px;background:#E5F1E4;border-radius:8px;font-size:13px;color:#3F9142;">' + line + '</div>';
+      });
+      detail.dayLeaves.forEach((l) => {
+        const name = employeeNameById[l.employee_id] || "?";
+        bodyHtml += '<div class="cal-tag leave-' + l.leave_type + '" style="padding:8px 10px;font-size:13px;">' +
+          name + ' · ' + l.leave_type + (l.memo ? ' · ' + l.memo : '') + '</div>';
+      });
+
+      document.getElementById("dayDetailBody").innerHTML = bodyHtml || '<div style="color:#999;font-size:13px;">기록이 없습니다.</div>';
+      document.getElementById("dayDetailModal").classList.add("active");
+    }
+    document.getElementById("closeDayDetailBtn").addEventListener("click", () => {
+      document.getElementById("dayDetailModal").classList.remove("active");
+    });
+
+    document.getElementById("calPrevBtn").addEventListener("click", () => {
+      calMonthDate = new Date(calMonthDate.getFullYear(), calMonthDate.getMonth() - 1, 1);
+      renderCalendar();
+    });
+    document.getElementById("calNextBtn").addEventListener("click", () => {
+      calMonthDate = new Date(calMonthDate.getFullYear(), calMonthDate.getMonth() + 1, 1);
+      renderCalendar();
+    });
+
+    // 휴무 등록/수정/삭제
+    let selectedLeaveType = null;
+
+    function openLeaveModal(dateStr) {
+      leaveModalTarget = { employeeId: calSelectedEmployeeId, dateStr: dateStr };
+      const existing = attendanceData.leaves.find(
+        (l) => l.employee_id === calSelectedEmployeeId && l.leave_date === dateStr
+      );
+
+      document.getElementById("leaveModalTitle").innerText = dateStr + " 기록";
+      document.getElementById("leaveMemoInput").value = existing ? (existing.memo || "") : "";
+      selectedLeaveType = existing ? existing.leave_type : null;
+
+      document.querySelectorAll(".leave-type-btn").forEach((btn) => {
+        btn.classList.toggle("selected", btn.dataset.type === selectedLeaveType);
+      });
+
+      document.getElementById("deleteLeaveBtn").style.display = existing ? "block" : "none";
+      document.getElementById("leaveModal").classList.add("active");
+    }
+
+    document.getElementById("closeLeaveBtn").addEventListener("click", () => {
+      document.getElementById("leaveModal").classList.remove("active");
+    });
+
+    document.querySelectorAll(".leave-type-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        selectedLeaveType = btn.dataset.type;
+        document.querySelectorAll(".leave-type-btn").forEach((b) => b.classList.toggle("selected", b === btn));
+      });
+    });
+
+    document.getElementById("saveLeaveBtn").addEventListener("click", async () => {
+      if (!leaveModalTarget) return;
+      if (!selectedLeaveType) {
+        showToast("유형을 선택해주세요.");
+        return;
+      }
+      const res = await ipcRenderer.invoke("erp-add-leave", {
+        employee_id: leaveModalTarget.employeeId,
+        store_name: currentStoreName,
+        leave_date: leaveModalTarget.dateStr,
+        leave_type: selectedLeaveType,
+        memo: document.getElementById("leaveMemoInput").value.trim(),
+      });
+      document.getElementById("leaveModal").classList.remove("active");
+      if (!res.ok) { showToast("저장 실패"); return; }
+      showToast(selectedLeaveType + " 기록이 저장되었습니다.");
+      await loadAttendanceData();
+    });
+
+    document.getElementById("deleteLeaveBtn").addEventListener("click", async () => {
+      if (!leaveModalTarget) return;
+      const existing = attendanceData.leaves.find(
+        (l) => l.employee_id === leaveModalTarget.employeeId && l.leave_date === leaveModalTarget.dateStr
+      );
+      document.getElementById("leaveModal").classList.remove("active");
+      if (!existing) return;
+      const res = await ipcRenderer.invoke("erp-delete-leave", existing.id);
+      if (!res.ok) { showToast("삭제 실패"); return; }
+      showToast("기록이 삭제되었습니다.");
+      await loadAttendanceData();
+    });
+
+    // 출퇴근부 내부 탭 전환
+    document.querySelectorAll(".att-tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".att-tab").forEach((t) => t.classList.remove("active"));
+        document.querySelectorAll(".att-panel").forEach((p) => p.classList.remove("active"));
+        tab.classList.add("active");
+        document.getElementById("attPanel-" + tab.dataset.tab).classList.add("active");
+        if (tab.dataset.tab === "calendar") renderCalendar();
+      });
+    });
+  </script>
+</body>
+</html>

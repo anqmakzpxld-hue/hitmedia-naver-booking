@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<style>
+  html, body {
+    margin: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Malgun Gothic", "맑은 고딕", sans-serif;
+    background: #F5F5F3;
+  }
+  .box {
+    width: 380px;
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    box-sizing: border-box;
+  }
+  .logo {
+    font-size: 15px;
+    font-weight: 800;
+    color: #1C2030;
+    margin-bottom: 4px;
+  }
+  .sub {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 24px;
+  }
+  label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    display: block;
+    margin-bottom: 6px;
+  }
+  input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border: 1px solid #DDD;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
+  input:focus {
+    outline: none;
+    border-color: #FEE500;
+  }
+  button {
+    width: 100%;
+    padding: 12px;
+    background: #1C2030;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  button:hover {
+    background: #2A3145;
+  }
+  .hint {
+    font-size: 11px;
+    color: #AAA;
+    margin-top: 12px;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+  <div class="box">
+    <div class="logo">히트미디어 예약 알림</div>
+    <div class="sub">처음 실행하는 매장이면 매장명을 입력해주세요.</div>
+    <label for="storeName">매장명</label>
+    <input id="storeName" type="text" placeholder="예: 강씨가문의족발 동탄남광장본점" />
+    <button id="submitBtn">시작하기</button>
+    <div class="hint">매장명은 네이버 스마트플레이스에 등록된 이름과 동일하게<br/>입력해주세요. 다음 실행부터는 이 화면이 나타나지 않습니다.</div>
+  </div>
+
+  <script>
+    const { ipcRenderer } = require("electron");
+
+    document.getElementById("submitBtn").addEventListener("click", () => {
+      const name = document.getElementById("storeName").value.trim();
+      if (!name) {
+        alert("매장명을 입력해주세요.");
+        return;
+      }
+      ipcRenderer.send("setup-complete", name);
+    });
+
+    document.getElementById("storeName").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") document.getElementById("submitBtn").click();
+    });
+  </script>
+</body>
+</html>
