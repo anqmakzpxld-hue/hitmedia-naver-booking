@@ -8,7 +8,8 @@
     "dist": "electron-builder --win"
   },
   "dependencies": {
-    "axios": "^1.7.0"
+    "axios": "^1.7.0",
+    "electron-updater": "^6.3.0"
   },
   "devDependencies": {
     "electron": "^31.0.0",
@@ -26,10 +27,18 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true
     },
+    "publish": {
+      "provider": "github",
+      "owner": "anqmakzpxld-hue",
+      "repo": "hitmedia-naver-booking"
+    },
     "files": [
       "main.js",
       "popup.html",
       "setup.html"
     ]
+  },
+  "allowScripts": {
+    "electron@31.7.7": true
   }
 }

@@ -11,6 +11,7 @@
 // 6. Windows 로그인 시 자동으로 실행되도록 등록한다 (POS가 켜지면 함께 켜짐).
 
 const { app, BrowserWindow, session, screen, ipcMain, shell, dialog } = require("electron");
+const { autoUpdater } = require("electron-updater");
 const axios = require("axios");
 const path = require("path");
 const fs = require("fs");
@@ -361,6 +362,61 @@ async function sendToErp(booking, storeName) {
   }
 }
 
+// ---------------------------------------------------------------------------
+// 자동 업데이트 (GitHub Releases 연동)
+// - 새 버전이 릴리즈되면 백그라운드에서 다운로드 후, 완료 시 재시작을 물어봄.
+// - 개발 중(패키징 안 된 상태)에는 electron-updater가 동작하지 않으므로
+//   npm start로 실행할 때는 건너뛰고, 빌드된 설치 버전(exe)에서만 동작한다.
+// ---------------------------------------------------------------------------
+function setupAutoUpdater() {
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+
+  autoUpdater.on("checking-for-update", () => {
+    console.log("[업데이트] 새 버전 확인 중...");
+  });
+
+  autoUpdater.on("update-available", (info) => {
+    console.log("[업데이트] 새 버전 발견: " + info.version + " (다운로드 시작)");
+  });
+
+  autoUpdater.on("update-not-available", () => {
+    console.log("[업데이트] 최신 버전입니다.");
+  });
+
+  autoUpdater.on("error", (err) => {
+    console.error("[업데이트] 확인/다운로드 실패:", err.message);
+  });
+
+  autoUpdater.on("download-progress", (progress) => {
+    console.log("[업데이트] 다운로드 중... " + Math.round(progress.percent) + "%");
+  });
+
+  autoUpdater.on("update-downloaded", (info) => {
+    console.log("[업데이트] 다운로드 완료: " + info.version + ", 재시작 확인창 표시");
+    dialog
+      .showMessageBox({
+        type: "info",
+        title: "업데이트 준비 완료",
+        message: "새 버전(" + info.version + ")이 준비되었습니다. 지금 재시작해서 업데이트할까요?",
+        buttons: ["지금 재시작", "나중에"],
+        defaultId: 0,
+        cancelId: 1,
+      })
+      .then((result) => {
+        if (result.response === 0) autoUpdater.quitAndInstall();
+      });
+  });
+
+  if (app.isPackaged) {
+    autoUpdater.checkForUpdatesAndNotify();
+    // POS는 항상 켜져 있으므로 4시간마다 한 번씩 재확인
+    setInterval(() => autoUpdater.checkForUpdatesAndNotify(), 4 * 60 * 60 * 1000);
+  } else {
+    console.log("[업데이트] 개발 모드(npm start)에서는 자동 업데이트를 건너뜁니다.");
+  }
+}
+
 function createMainWindow(storeName) {
   const win = new BrowserWindow({
     width: 1360,
@@ -406,6 +462,7 @@ function createSetupWindow() {
 
 app.whenReady().then(async () => {
   app.setLoginItemSettings({ openAtLogin: true });
+  setupAutoUpdater();
 
   const config = loadStoreConfig();
   let storeName;
